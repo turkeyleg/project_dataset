@@ -40,7 +40,7 @@ class DataGetter:
 
     def getSvcgData(self, year=2005, sample=True, rows = -1):
         path = os.path.join(self._dataPath, 'sample_svcg_%d.txt' %(year))
-        df = pd.read_csv(monthly_path, sep='|', header=None, index_col=False,
+        df = pd.read_csv(path, sep='|', header=None, index_col=False,
                                  #parse_dates=['monthly_reporting_period','zero_balance_eff_dt','ddlpi'],
                                  date_parser=self._dateparse,
                                  low_memory=False,
@@ -61,9 +61,12 @@ class DataGetter:
 
         return df
 
+dg = DataGetter(dataPath = r'C:\Users\aaron\Downloads')
+#df = dg.getOrigData(year=2004)
+
+origData = pd.concat(dg.getOrigData(year) for year in range(2000,2006))
+svcData = pd.concat(dg.getSvcgData(year) for year in range(2000,2006))
+
+#df = pd.merge(origData, svcData, on='loan_sequence_number')
 
 
-
-
-# frames = [get_frame(date) for date in dates]
-# df = pd.concat(frames, axis=1)
