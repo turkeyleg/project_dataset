@@ -84,15 +84,14 @@ class DataGetter:
 
         return df
 
-# home
-# dataPath = r'C:\Users\aaron\Downloads'
+    def getDataset(self):
+        svcgData = pd.concat([self.getSvcgData(year) for year in range(2000,2002)], copy=False)
+        origData = pd.concat([self.getOrigData(year) for year in range(2000,2002)], copy=False)
+        merged = pd.merge(origData, svcgData, left_index=True, right_index=True)
+        print 'done merging'
+        return merged
 
-# work
-dataPath = r'C:\Users\jylkka_a\Downloads'
 
-
-print dt.datetime.now()
-dg = DataGetter(dataPath = dataPath)
 
 db = False
 con = sqlite3.connect('dataset.db')
@@ -129,46 +128,6 @@ q = '''
         select * from orig join svcg on orig.loan_sequence_number = svcg.loan_sequence_number
     '''
 
-print 'trying to get sql'
-#df = pd.concat(result for result in pd.read_sql(q, con, chunksize=10000))
-print 'done'
-# print 'setting indices ...'
-# origData.index = origData['loan_sequence_number']
-# svcData.index = svcData['loan_sequence_number']
 
-#print 'merging ...'
-#df = pd.merge(origData, svcData, on='loan_sequence_number')
-
-svcgData = pd.concat([dg.getSvcgData(year) for year in range(2000,2002)], copy=False)
-origData = pd.concat([dg.getOrigData(year) for year in range(2000,2002)], copy=False)
-merged = pd.merge(origData, svcgData, left_index=True, right_index=True)
-print 'done merging'
 #print merged.zero_balance_eff_dt.unique()
 
-is_delinq = lambda x: (x not in ('0', 'XX', 'R'))
-# apply boolean indicating whether the loan status is delinquent
-merged['is_delinquent'] = merged['current_loan_delinq_status'].apply(is_delinq)
-
-gb = merged.groupby(level=0)
-# should return a series, for each loan give the index of the first thing that's delinquent
-get_first_delinq = lambda x: x.idxmax()[1] if x.any() else pd.NaT
-first_delinq = gb.is_delinquent.apply(get_first_delinq)
-first_delinq.name = 'first_delinquency'
-merged = pd.merge(merged, pd.DataFrame(first_delinq), left_index=True, right_index=True)
-# get the monthly reporting date from the datetime index
-i=merged.index.to_series().apply(lambda x: x[1])
-past_delinq = (~ pd.isnull(merged.first_delinquency)) & (i > merged.first_delinquency )
-print merged.shape
-print past_delinq.sum()
-past_delinq = merged[past_delinq]
-past_delinq_idx = past_delinq.index
-merged.drop(past_delinq_idx, inplace=True)
-print merged.shape
-print 'ready'
-#gb['is_delinquent'].idxmax() if gb['is_delinquent'].any() else None
-
-
-# returns row of first default
-# merged.loc[merged['is_defaulted'].idxmax()]
-
-# pd.isnull(merged.zero_balance_eff_dt.unique()[0])
