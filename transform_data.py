@@ -15,31 +15,47 @@ print dt.datetime.now()
 dg = DataGetter(dataPath = dataPath)
 df = dg.getDataset()
 
+def calc_first_delinq(df):
+    # any status code other than these is delinquent
+    is_delinq = lambda x: (x not in ('0', 'XX', 'R'))
+    # apply boolean indicating whether the loan status is delinquent
+    df['is_delinquent'] = df['current_loan_delinq_status'].apply(is_delinq)
+    # group by loan
+    gb = df.groupby(level=0)
+    # return monthly_reporting period (second element of index)
+    # of the first instance of is_delinquent=True, if there are any
+    get_first_delinq = lambda x: x.idxmax()[1] if x.any() else pd.NaT
+    first_delinq = gb.is_delinquent.apply(get_first_delinq)
+    first_delinq.name = 'first_delinquency'
 
-is_delinq = lambda x: (x not in ('0', 'XX', 'R'))
-# apply boolean indicating whether the loan status is delinquent
-df['is_delinquent'] = df['current_loan_delinq_status'].apply(is_delinq)
+    # add the first delinquency to the main dataframe
+    df = pd.merge(df, pd.DataFrame(first_delinq), left_index=True, right_index=True)
 
-gb = df.groupby(level=0)
-# should return a series, for each loan give the index of the first thing that's delinquent
-get_first_delinq = lambda x: x.idxmax()[1] if x.any() else pd.NaT
-first_delinq = gb.is_delinquent.apply(get_first_delinq)
-first_delinq.name = 'first_delinquency'
-merged = df.merge(df, pd.DataFrame(first_delinq), left_index=True, right_index=True)
-# get the monthly reporting date from the datetime index
-i=merged.index.to_series().apply(lambda x: x[1])
-past_delinq = (~ df.isnull(merged.first_delinquency)) & (i > merged.first_delinquency )
-print merged.shape
-print past_delinq.sum()
-past_delinq = merged[past_delinq]
-past_delinq_idx = past_delinq.index
-merged.drop(past_delinq_idx, inplace=True)
-print merged.shape
-print 'ready'
-#gb['is_delinquent'].idxmax() if gb['is_delinquent'].any() else None
+    # now we want to drop all records where the date is after the date of first delinquency,
+    # because we are only trying to predict first delinquency
+
+    # get the monthly reporting date from the datetime index
+    i=df.index.to_series().apply(lambda x: x[1])
+    # get boolean series indicating where monthly_reporting_date is after first delinquency
+    past_delinq = (~ pd.isnull(df.first_delinquency)) & (i > df.first_delinquency )
+    past_delinq = df[past_delinq]
+    past_delinq_idx = past_delinq.index
+    df.drop(past_delinq_idx, inplace=True)
+    df.first_delinquency.name
+    return df
 
 
-# returns row of first default
-# merged.loc[merged['is_defaulted'].idxmax()]
 
-# pd.isnull(merged.zero_balance_eff_dt.unique()[0])
+if __name__ == '__main__':
+    # home
+    # dataPath = r'C:\Users\aaron\Downloads'
+
+    # work
+    dataPath = r'C:\Users\jylkka_a\Downloads'
+
+    dg = DataGetter(dataPath=dataPath)
+    df = dg.getDataset()
+    print 'got dataset, now munging'
+    df = calc_first_delinq(df)
+    print df.first_delinquency.name
+    print 'done'
