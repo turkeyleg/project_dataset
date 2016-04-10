@@ -4,16 +4,6 @@ import datetime as dt
 
 
 
-# home
-# dataPath = r'C:\Users\aaron\Downloads'
-
-# work
-dataPath = r'C:\Users\jylkka_a\Downloads'
-
-
-print dt.datetime.now()
-dg = DataGetter(dataPath = dataPath)
-df = dg.getDataset()
 
 def calc_first_delinq(df):
     # any status code other than these is delinquent
@@ -37,12 +27,18 @@ def calc_first_delinq(df):
     # get the monthly reporting date from the datetime index
     i=df.index.to_series().apply(lambda x: x[1])
     # get boolean series indicating where monthly_reporting_date is after first delinquency
-    past_delinq = (~ pd.isnull(df.first_delinquency)) & (i > df.first_delinquency )
+    past_delinq = (~ pd.isnull(df.first_delinquency)) & (df.first_delinquency < i)
     past_delinq = df[past_delinq]
     past_delinq_idx = past_delinq.index
     df.drop(past_delinq_idx, inplace=True)
     df.first_delinquency.name
-    return df
+    print 'return transformed data'
+
+def calc_delinq_next_month(df):
+    gb = df.groupby(level='loan_sequence_number')
+    df['first_delinq_next_month'] = gb['is_delinquent'].shift(-1)
+    df.dropna(subset=['first_delinq_next_month'], inplace=True)
+    df['first_delinq_next_month'] = df['first_delinq_next_month'].astype(bool)
 
 
 
@@ -56,6 +52,7 @@ if __name__ == '__main__':
     dg = DataGetter(dataPath=dataPath)
     df = dg.getDataset()
     print 'got dataset, now munging'
-    df = calc_first_delinq(df)
-    print df.first_delinquency.name
+    calc_first_delinq(df)
+    calc_delinq_next_month(df)
+    #print df.first_delinquency.name
     print 'done'

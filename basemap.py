@@ -57,14 +57,30 @@ ax = plt.gca()
 #         #print e, color, nshape
 #         pass
 
+# state_names = [shape_dict['NAME'] for shape_dict in map.states_info]
+#
+# for state in colors.keys():
+#     seg = map.states[state_names.index(state)]
+#     color = 'red'
+#     color = rgb2hex(colors[state])
+#     poly = Polygon(seg, facecolor=color, edgecolor=color)
+#     ax.add_patch(poly)
+
+
+
+smiley_states = ['Wyoming','Iowa','Nevada','Arizona','New Mexico','Texas','Louisiana','Mississippi','Alabama',
+                 'Tennessee']
+
 state_names = [shape_dict['NAME'] for shape_dict in map.states_info]
 
-for state in colors.keys():
+for state in smiley_states:
     seg = map.states[state_names.index(state)]
-    color = 'red'
-    color = rgb2hex(colors[state])
+    color = 'blue' if state in ('Wyoming','Iowa') else 'red'
+    #color = rgb2hex(colors[state])
     poly = Polygon(seg, facecolor=color, edgecolor=color)
     ax.add_patch(poly)
+
+
 
 
 
