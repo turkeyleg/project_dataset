@@ -6,10 +6,12 @@ import datetime as dt
 
 
 def calc_first_delinq(df):
+    print 'Calculating first delinquency ...'
     # any status code other than these is delinquent
     is_delinq = lambda x: (x not in ('0', 'XX', 'R'))
     # apply boolean indicating whether the loan status is delinquent
     df['is_delinquent'] = df['current_loan_delinq_status'].apply(is_delinq)
+
     # group by loan
     gb = df.groupby(level=0)
     # return monthly_reporting period (second element of index)
@@ -33,8 +35,10 @@ def calc_first_delinq(df):
     df.drop(past_delinq_idx, inplace=True)
     df.first_delinquency.name
     print 'return transformed data'
+    return df
 
 def calc_delinq_next_month(df):
+    print 'Calculating delinqencies next month ...'
     gb = df.groupby(level='loan_sequence_number')
     df['first_delinq_next_month'] = gb['is_delinquent'].shift(-1)
     df.dropna(subset=['first_delinq_next_month'], inplace=True)
@@ -50,7 +54,7 @@ if __name__ == '__main__':
     dataPath = r'C:\Users\jylkka_a\Downloads'
 
     dg = DataGetter(dataPath=dataPath)
-    df = dg.getDataset()
+    df = dg.getDataset(year_range=[2000, 2004])
     print 'Got dataset, now munging ...'
     calc_first_delinq(df)
     calc_delinq_next_month(df)

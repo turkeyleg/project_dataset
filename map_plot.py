@@ -73,9 +73,9 @@ if test:
 
 from load_dataset import DataGetter
 from transform_data import calc_first_delinq
-dg = DataGetter()
-df = dg.getDataset()
-calc_first_delinq(df)
+
+
+
 
 
 def calc_default_rates_by_state_and_year(df):
@@ -94,13 +94,17 @@ def calc_default_rates_by_state_and_year(df):
 
     return default_rates_year_state
 
+dg = DataGetter()
+df = dg.getDataset(year_range=[2000,2008])
+print 'calculating first DELINQUENCY ...'
+df = calc_first_delinq(df)
 
 dr = calc_default_rates_by_state_and_year(df)
 
 for yr in range(2000, 2009):
     #yr = 2008
     dr_yr = pd.DataFrame({dr[yr].index.name: dr[yr].index, 'default_rates': dr[yr]})
-    dm = DataMapper(data=dr_yr, map_key='property_state', map_value='default_rates', save_plot=True, plot_name=str(yr))
+    dm = DataMapper(data=dr_yr, map_key='property_state', map_value='default_rates', save_plot=True, show_plot=False, plot_name=str(yr))
     try:
         dm.plot()
     except Exception as e:

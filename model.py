@@ -48,7 +48,7 @@ class DataFrameImputer(TransformerMixin):
 
 
 dg = DataGetter()
-df = dg.getDataset()
+df = dg.getDataset(year_range=[2000, 2003])
 calc_first_delinq(df)
 calc_delinq_next_month(df)
 
@@ -105,4 +105,6 @@ print 'Random Forest model score of %f vs benchmark score of %f' %(score, bench)
 
 # print most important features
 import pprint
-pprint.pprint(zip(model_features, rfc.feature_importances_).sort(key=lambda x:x[1], reverse=True))
+feature_importances = zip(model_features, rfc.feature_importances_)
+feature_importances.sort(key=lambda x:x[1], reverse=True)
+pprint.pprint(feature_importances)

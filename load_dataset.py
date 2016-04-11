@@ -132,11 +132,11 @@ class DataGetter:
 
         return df
 
-    def getDataset(self):
+    def getDataset(self, year_range=[2000,2002]):
         print 'Getting origination data ...'
-        svcgData = pd.concat([self.getSvcgData(year) for year in range(2000,2002)], copy=False)
+        svcgData = pd.concat([self.getSvcgData(year) for year in range(*year_range)], copy=False)
         print 'Getting servicing data ...'
-        origData = pd.concat([self.getOrigData(year) for year in range(2000,2002)], copy=False)
+        origData = pd.concat([self.getOrigData(year) for year in range(*year_range)], copy=False)
         print 'Merging origination and servicing data ...'
         merged = pd.merge(origData, svcgData, left_index=True, right_index=True)
 
@@ -156,6 +156,7 @@ class DataGetter:
                                                                                          'MH','SF','CP'])
 
         print 'Done merging'
+        print merged.info(memory_usage='deep')
         return merged
 
 
