@@ -51,7 +51,7 @@ if __name__ == '__main__':
 
     dg = DataGetter(dataPath=dataPath)
     df = dg.getDataset()
-    print 'got dataset, now munging'
+    print 'Got dataset, now munging ...'
     calc_first_delinq(df)
     calc_delinq_next_month(df)
     #print df.first_delinquency.name

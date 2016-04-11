@@ -117,14 +117,14 @@ class DataGetter:
 
         for col in ('monthly_reporting_period', 'zero_balance_eff_dt', 'ddlpi'):
             try:
-                print col
+                #print col
                 df[col] = pd.to_datetime(df[col], format='%Y%m', errors='coerce'
                                          #,utc=False
                                          )
             except Exception as e:
                 print e
                 pass
-        print 'set index'
+        #print 'set index'
         #df['monthly_reporting_period'] = df['monthly_reporting_period'].dt.to_period('M')
         df.set_index(['loan_sequence_number', 'monthly_reporting_period'], inplace=True)
         # for col in ('current_loan_delinq_status', 'repurchase_flag', 'modification_flag', 'zero_balance_code',
@@ -142,6 +142,7 @@ class DataGetter:
 
         # only convert this column to category once you have all the values
         merged['current_loan_delinq_status'] = merged['current_loan_delinq_status'].astype('category')
+        merged['seller_name'] = merged['seller_name'].astype('category')
 
         merged['first_time_hb_flag'] = merged['first_time_hb_flag'].astype('category', categories=['Y','N'])
         merged['nbr_units'] = merged['nbr_units'].astype('category', categories=[1, 2, 3, 4])
